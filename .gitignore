@@ -1,0 +1,45 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+# tfvars can hold secrets; commit only *.tfvars.example
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+
+# Secrets / credentials
+.env
+.env.*
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+kubeconfig
+*.kubeconfig
+admin.conf
+.vault_pass*
+secrets/
+
+# Ansible
+*.retry
+ansible/inventory/generated/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Editors / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store

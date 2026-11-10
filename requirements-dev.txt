@@ -1,0 +1,4 @@
+# Dev tooling. ansible-core pinned to 2.17: last series supporting Python 3.10 on the controller.
+ansible-core==2.17.14
+ansible-lint==26.6.0
+pre-commit==4.6.2
