@@ -21,11 +21,35 @@ _TODO: diagram_
 
 ## Usage
 
-_TODO_
+Host requirements: Linux with KVM, `libvirt-daemon-system`, Terraform >= 1.9,
+and the user in the `libvirt` group.
+
+```bash
+cd terraform
+terraform init
+terraform apply
+ssh -i ~/.ssh/homelab_k8s_ed25519 debian@192.168.150.10
+```
 
 ## Design decisions
 
 _TODO: why kubeadm over kind, why libvirt, etc._
+
+## Troubleshooting log
+
+### VMs fail to start: `Could not open '...qcow2': Permission denied`
+
+- **Symptom:** `terraform apply` creates volumes and network, but every domain fails to start.
+  File ownership and modes were correct (`libvirt-qemu`, 0600).
+- **Diagnosis:** `journalctl -k` showed `apparmor="DENIED" operation="open"` on the node disks.
+  The kernel was rate-limiting the messages (`callbacks suppressed`), so they only showed up when
+  reproducing with a single domain (`terraform apply -target`).
+- **Root cause:** on Ubuntu, libvirt generates a per-VM AppArmor profile with `virt-aa-helper`.
+  It does not resolve disks declared as pool volumes (`<disk type='volume'>`), so the profile had
+  no rule for them.
+- **Fix:** reference disks by file path (`source.file`). `virt-aa-helper` then adds the overlay
+  (`rwk`), its qcow2 backing image (`rk`) and the cloud-init ISO (`rk`) automatically.
+  No AppArmor tweaks and no `security_driver = "none"` needed.
 
 ## AI assistance
 

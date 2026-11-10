@@ -131,13 +131,12 @@ resource "libvirt_domain" "node" {
   }
 
   devices = {
+    # Disks are referenced by file path, not by pool volume: on Ubuntu, virt-aa-helper
+    # does not resolve type='volume' disks, so AppArmor would deny QEMU access to them.
     disks = [
       {
         source = {
-          volume = {
-            pool   = libvirt_volume.disk[each.key].pool
-            volume = libvirt_volume.disk[each.key].name
-          }
+          file = { file = libvirt_volume.disk[each.key].path }
         }
         target = { bus = "virtio", dev = "vda" }
         driver = { type = "qcow2" }
@@ -145,10 +144,7 @@ resource "libvirt_domain" "node" {
       {
         device = "cdrom"
         source = {
-          volume = {
-            pool   = libvirt_volume.cloudinit[each.key].pool
-            volume = libvirt_volume.cloudinit[each.key].name
-          }
+          file = { file = libvirt_volume.cloudinit[each.key].path }
         }
         target = { bus = "sata", dev = "sda" }
       },
