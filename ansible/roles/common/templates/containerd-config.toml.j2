@@ -1,0 +1,6 @@
+# {{ ansible_managed }}
+version = 4
+
+# kubelet and containerd must use the same cgroup driver; systemd on systemd hosts.
+[plugins.'io.containerd.cri.v1.runtime'.containerd.runtimes.runc.options]
+  SystemdCgroup = true

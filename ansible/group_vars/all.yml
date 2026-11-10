@@ -1,0 +1,9 @@
+---
+# Kubernetes minor version: selects the pkgs.k8s.io repo channel.
+k8s_minor: "1.37"
+
+# Must not overlap the node network (192.168.150.0/24) or host routes.
+k8s_pod_cidr: "10.244.0.0/16"
+k8s_service_cidr: "10.96.0.0/12"
+
+calico_version: "v3.33.0"

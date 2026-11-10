@@ -1,0 +1,18 @@
+---
+- name: Node prerequisites
+  hosts: all
+  become: true
+  roles:
+    - common
+
+- name: Control plane
+  hosts: control_plane
+  become: true
+  roles:
+    - control_plane
+
+- name: Workers
+  hosts: workers
+  become: true
+  roles:
+    - worker

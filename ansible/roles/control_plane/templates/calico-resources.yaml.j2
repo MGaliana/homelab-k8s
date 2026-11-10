@@ -1,0 +1,22 @@
+# {{ ansible_managed }}
+# Based on calico {{ calico_version }} manifests/custom-resources.yaml.
+# Goldmane and Whisker (flow observability) omitted to save RAM on 2 GiB nodes.
+apiVersion: operator.tigera.io/v1
+kind: Installation
+metadata:
+  name: default
+spec:
+  calicoNetwork:
+    ipPools:
+      - name: default-ipv4-ippool
+        blockSize: 26
+        cidr: {{ k8s_pod_cidr }}
+        encapsulation: VXLANCrossSubnet
+        natOutgoing: Enabled
+        nodeSelector: all()
+---
+apiVersion: operator.tigera.io/v1
+kind: APIServer
+metadata:
+  name: default
+spec: {}

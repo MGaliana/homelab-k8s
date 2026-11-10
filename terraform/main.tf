@@ -124,6 +124,12 @@ resource "libvirt_domain" "node" {
   memory_unit = "MiB"
   running     = true
 
+  # Expose the host CPU model. The default (qemu64) lacks x86-64-v2, which many
+  # current images require (e.g. Calico's operator: "CPU does not support x86-64-v2").
+  cpu = {
+    mode = "host-passthrough"
+  }
+
   os = {
     type         = "hvm"
     type_arch    = "x86_64"

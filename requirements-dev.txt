@@ -1,4 +1,5 @@
-# Dev tooling. ansible-core pinned to 2.17: last series supporting Python 3.10 on the controller.
-ansible-core==2.17.14
-ansible-lint==26.6.0
-pre-commit==4.6.2
+# Dev tooling. Requires Python >= 3.13 (ansible-core 2.22). Created with:
+#   uv venv --python 3.13 .venv && uv pip install -r requirements-dev.txt
+ansible-core==2.22.0
+ansible-lint==26.11.0
+pre-commit==4.7.0

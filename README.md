@@ -11,7 +11,10 @@ Built as CKA practice and a portfolio project.
 |----------------|----------------------------------------|
 | VMs            | Terraform + libvirt provider (KVM)     |
 | Configuration  | Ansible                                |
-| Kubernetes     | kubeadm (1 control plane + 1 worker)   |
+| OS             | Debian 13 (trixie) cloud image         |
+| Runtime        | containerd 2.4 (Docker apt repo)       |
+| Kubernetes     | kubeadm 1.37 (1 control plane + 1 worker) |
+| CNI            | Calico 3.33 (operator, VXLAN cross-subnet) |
 | Observability  | Prometheus + Grafana                   |
 | CI             | GitHub Actions (lint, validate, scan)  |
 
@@ -29,7 +32,21 @@ cd terraform
 terraform init
 terraform apply
 ssh -i ~/.ssh/homelab_k8s_ed25519 debian@192.168.150.10
+
+# Ansible (from the repo root)
+uv venv --python 3.13 .venv && uv pip install -r requirements-dev.txt
+source .venv/bin/activate
+cd ansible
+ansible-galaxy collection install -r requirements.yml
+terraform -chdir=../terraform output -raw ansible_inventory > inventory/generated/hosts.yml
+ansible-playbook site.yml
+
+export KUBECONFIG=~/.kube/homelab-k8s.conf
+kubectl get nodes
 ```
+
+Networks: nodes `192.168.150.0/24`, pods `10.244.0.0/16`, services `10.96.0.0/12`.
+Calico's default pod CIDR (`192.168.0.0/16`) was avoided on purpose: it overlaps typical home LANs.
 
 ## Design decisions
 
@@ -50,6 +67,23 @@ _TODO: why kubeadm over kind, why libvirt, etc._
 - **Fix:** reference disks by file path (`source.file`). `virt-aa-helper` then adds the overlay
   (`rwk`), its qcow2 backing image (`rk`) and the cloud-init ISO (`rk`) automatically.
   No AppArmor tweaks and no `security_driver = "none"` needed.
+
+### Calico operator in CrashLoopBackOff: `CPU does not support x86-64-v2`
+
+- **Symptom:** nodes stuck `NotReady`; `tigera-operator` crash-looping.
+- **Root cause:** without an explicit CPU model, libvirt gives guests a generic `qemu64` CPU
+  (no SSE4.2/POPCNT). Current images built for x86-64-v2 abort in glibc at startup.
+- **Fix:** `cpu.mode = "host-passthrough"` on the domains. Terraform updates the domain in place,
+  but a running VM keeps its CPU until a full power cycle (shutdown + start; an in-guest reboot
+  is not enough).
+
+### Version constraints found along the way
+
+- Kubernetes >= 1.36 requires containerd 2.x; Debian trixie ships 1.7, so containerd comes from
+  Docker's apt repo. Its config must be replaced: the packaged one disables the CRI plugin.
+- containerd 2.4 uses config `version = 4`; a v3 file works but is migrated on every start.
+- ansible-core 2.17 (last for Python 3.10) does not support Python 3.13 targets and is EOL,
+  so the controller venv uses a uv-managed Python 3.13.
 
 ## AI assistance
 
