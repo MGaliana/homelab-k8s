@@ -1,5 +1,7 @@
 # homelab-k8s
 
+[![CI](https://github.com/MGaliana/homelab-k8s/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/MGaliana/homelab-k8s/actions/workflows/ci.yml)
+
 Kubernetes lab running on local KVM, provisioned end-to-end as code.
 Built as CKA practice and a portfolio project.
 
@@ -48,9 +50,34 @@ kubectl get nodes
 Networks: nodes `192.168.150.0/24`, pods `10.244.0.0/16`, services `10.96.0.0/12`.
 Calico's default pod CIDR (`192.168.0.0/16`) was avoided on purpose: it overlaps typical home LANs.
 
+## CI and local checks
+
+Every push and pull request runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
+
+| Job | What it checks |
+|-----|----------------|
+| Lint (pre-commit) | `terraform fmt` / `validate`, TFLint (all rules of the bundled `terraform` ruleset), ansible-lint (`production` profile), YAML syntax, whitespace, private keys |
+| Security scan | Checkov on Ansible and the workflow itself (it has no libvirt rules; Terraform is enabled for a future AWS module) |
+| Secret scan | gitleaks over the **full git history**, not only the current tree |
+
+The lint job runs the same `.pre-commit-config.yaml` used for local commits, so a clean
+local commit means a green lint job. Hardening: `permissions: contents: read`, no secrets,
+actions pinned to commit SHAs, `persist-credentials: false`, gitleaks binary verified by sha256.
+
+```bash
+# Local setup (once): needs terraform and tflint on PATH
+source .venv/bin/activate
+pre-commit install
+pre-commit run --all-files
+```
+
 ## Design decisions
 
-_TODO: why kubeadm over kind, why libvirt, etc._
+- **kubeadm on VMs, not kind/containers.** The CKA exam and real clusters are kubeadm on
+  real hosts: upgrades, etcd backup/restore, kubelet troubleshooting with systemd. Running nodes
+  as containers would hide exactly that. kind is still a good fit for throwaway clusters in CI.
+
+_TODO: why libvirt, why Calico, etc._
 
 ## Troubleshooting log
 

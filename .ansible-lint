@@ -1,0 +1,10 @@
+---
+# Shared by local runs, the pre-commit hook and CI.
+profile: production
+# Lint as if run from ansible/ (where ansible.cfg and roles live).
+project_dir: ansible
+exclude_paths:
+  - .venv/
+  - .github/
+  - terraform/
+  - ansible/inventory/generated/
