@@ -104,6 +104,21 @@ _TODO: why libvirt, why Calico, etc._
   but a running VM keeps its CPU until a full power cycle (shutdown + start; an in-guest reboot
   is not enough).
 
+### Host reboot makes Terraform want to replace the cloud-init disks
+
+- **Symptom:** after rebooting the host, `terraform plan` (with no code changes) wanted to
+  recreate `libvirt_cloudinit_disk`, replace the `cloudinit` volumes and update both domains.
+- **Cause:** the provider writes the generated ISO to `/tmp`, which is wiped on reboot. The
+  volume copies it from that path, so a new path forces a replacement.
+- **Fix:** `lifecycle { ignore_changes = [create] }` on the volume. cloud-init only runs on
+  first boot (same `instance-id`), so the copy already in the pool is enough. Trade-off: new
+  cloud-init content needs `terraform apply -replace=...` of the node.
+
+### "Updated in-place" still restarts the VM
+
+Raising a node's memory showed as an in-place update, but the provider restarted the domain
+during `apply`. Treat any domain change as disruptive: `kubectl drain` first, `uncordon` after.
+
 ### Version constraints found along the way
 
 - Kubernetes >= 1.36 requires containerd 2.x; Debian trixie ships 1.7, so containerd comes from

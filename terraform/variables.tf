@@ -51,7 +51,7 @@ variable "nodes" {
   }))
   default = {
     cp-1 = { role = "control-plane", vcpu = 2, memory_mib = 2048, disk_gib = 20, host_index = 10 }
-    wk-1 = { role = "worker", vcpu = 2, memory_mib = 2048, disk_gib = 20, host_index = 11 }
+    wk-1 = { role = "worker", vcpu = 2, memory_mib = 4096, disk_gib = 20, host_index = 11 }
   }
 
   validation {

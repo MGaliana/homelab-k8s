@@ -110,6 +110,14 @@ resource "libvirt_volume" "cloudinit" {
   create = {
     content = { url = libvirt_cloudinit_disk.init[each.key].path }
   }
+
+  # The provider writes the ISO to /tmp, which is wiped on host reboot. That
+  # changes the source path and would force a replacement on every plan.
+  # cloud-init only runs on first boot, so the copy in the pool is enough.
+  # To push new cloud-init content, rebuild the node: terraform apply -replace=...
+  lifecycle {
+    ignore_changes = [create]
+  }
 }
 
 # --- Nodes -------------------------------------------------------------------
